@@ -1,4 +1,4 @@
-# BPR-Python-Scripts
+# BPR Python Scripts
 A collection of python scripts to aid BPR modding.
 
 # Script Types
