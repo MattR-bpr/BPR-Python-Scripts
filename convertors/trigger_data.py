@@ -10,9 +10,12 @@ class TriggerData:
 
 
     def Convert(self) -> None:
-        # header
+        # check version
         self.mFP.seek(0x0)
-        utilities.SwapBytes(self.mFP, "<L")
+        version = utilities.SwapBytes(self.mFP, "<L")
+        assert version >= 34 and version <= 42, "Bad TriggerData version."
+
+        # header
         utilities.SwapBytes(self.mFP, "<L")
         self.mFP.seek(0x10)
         for _ in range(8):
@@ -42,9 +45,8 @@ class TriggerData:
             self.ConvertLandmark(landmarks_offset + i * 0x34)
 
         # signature stunts
-        self.mFP.seek(signature_stunts_offset)
-        for _ in range(signature_stunts_count):
-            self.ConvertSignatureStunt()
+        for i in range(signature_stunts_count):
+            self.ConvertSignatureStunt(signature_stunts_offset + i * 0x18)
 
         # generic regions
         self.mFP.seek(generic_regions_offset)
@@ -121,12 +123,18 @@ class TriggerData:
             self.ConvertStartingGrid()
 
 
-    def ConvertSignatureStunt(self) -> None:
+    def ConvertSignatureStunt(self, signature_stunt_offset: int) -> None:
         # signature stunt
+        self.mFP.seek(signature_stunt_offset)
         utilities.SwapBytes(self.mFP, "<Q")
         utilities.SwapBytes(self.mFP, "<Q")
-        utilities.SwapBytes(self.mFP, "<L") # TODO: references existing generic regions?
-        utilities.SwapBytes(self.mFP, "<L")
+        stunt_elements_offset = utilities.SwapBytes(self.mFP, "<L")
+        stunt_elements_count = utilities.SwapBytes(self.mFP, "<L")
+
+        # stunt elements
+        self.mFP.seek(stunt_elements_offset)
+        for _ in range(stunt_elements_count):
+            utilities.SwapBytes(self.mFP, "<L")
 
 
     def ConvertKillzone(self, killzone_offset: int) -> None:
