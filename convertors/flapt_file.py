@@ -9,7 +9,7 @@ class FlaptFile:
         self.mFP = fp
 
 
-    def Convert(self) -> None:
+    def Convert(self, import_entries_offset: int, import_entries_count: int) -> None:
         # check version
         self.mFP.seek(0x0)
         version = utilities.UnpackBytes(self.mFP, "B")
@@ -17,7 +17,7 @@ class FlaptFile:
 
         # header
         self.mFP.seek(0x4)
-        size = utilities.SwapBytes(self.mFP, "<L")
+        utilities.SwapBytes(self.mFP, "<L")
         utilities.SwapBytes(self.mFP, "<L")
         movie_clips_count = utilities.SwapBytes(self.mFP, "<L")
         movie_clips_offset = utilities.SwapBytes(self.mFP, "<L")
@@ -79,9 +79,7 @@ class FlaptFile:
             utilities.SwapBytes(self.mFP, "<L")
 
         # import entries
-        self.mFP.seek(0, 2)
-        import_entries_count = (self.mFP.tell() - size) // 0x10
-        self.mFP.seek(size)
+        self.mFP.seek(import_entries_offset)
         for _ in range(import_entries_count):
             self.ConvertImportEntry()
 
@@ -263,9 +261,11 @@ class FlaptFile:
 
 def Main():
     flapt_file_path = filedialog.askopenfilename()
+    import_entries_offset = int(input("import entries offset: "), 16)
+    import_entries_count = int(input("import entries count: "))
     with open(flapt_file_path, "r+b") as fp:
         flapt_file = FlaptFile(fp)
-        flapt_file.Convert()
+        flapt_file.Convert(import_entries_offset, import_entries_count)
 
 
 if __name__ == "__main__":
